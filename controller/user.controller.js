@@ -1,5 +1,5 @@
 import User from "../model/User.model.js";
-import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import sendVerificationEmail from "../utils/send-verificationEmail.js";
 import jwt from "jsonwebtoken"
@@ -62,7 +62,7 @@ const registerUser = async (req, res) => {
 
         //send email to user
         sendVerificationEmail(user.email , "Verify your email" , `Please click on the following link:
-    ${process.env.BASE_URL}/api/users/verify/${verificationToken}`)
+    ${process.env.BASE_URL}/api/v1/users/verify/${verificationToken}`)
 
         //send success response to user
         return res.status(201).json({
@@ -114,23 +114,23 @@ const loginUser = async (req , res) => {
         if(!user){
         return res.status(404).json({message: "User not found. Please register"});
         }
-
         //check password
         const isMatch = await bcrypt.compare(password , user.password)
         console.log(isMatch)
 
         if(!isMatch){
             return res.status(401).json({message: "Invalid credentials"});
-        }
+        } 
+        else console.log("User email and password matched")
 
         //if user is there but not verified
         if(!user.isVerified){
             return res.status(401).json({message: "User not verified. Please verify your email"})
-        }
+        } else console.log("User is verified")
 
         //generate jwt token
         const token = jwt.sign({id : user._id} , "shhh" , {expiresIn : "24h"})
-
+        console.log("Generated JWT token:" , token)
         const cookieOptions = {
             httpOnly: true,
             secure: true,
